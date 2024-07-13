@@ -7,15 +7,6 @@ const port = 3001;
 
 mongoose.connect('mongodb://localhost:27017/bitcoin', { useNewUrlParser: true, useUnifiedTopology: true });
 
-const priceSchema = new mongoose.Schema({
-    time: Date,
-    usd: Number,
-    gbp: Number,
-    eur: Number
-});
-
-const Price = mongoose.model('Price', priceSchema);
-
 app.use(cors());
 app.use(express.json());
 
@@ -33,7 +24,6 @@ app.get('/api/update', async (req, res) => {
         const response = await axios.get('https://api.coindesk.com/v1/bpi/currentprice.json');
         const data = response.data;
         const price = new Price({
-            time: new Date(),
             usd: data.bpi.USD.rate_float,
             gbp: data.bpi.GBP.rate_float,
             eur: data.bpi.EUR.rate_float
