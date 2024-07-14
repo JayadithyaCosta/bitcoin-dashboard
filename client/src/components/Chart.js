@@ -9,10 +9,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
 import { Container, Typography, Paper } from "@mui/material";
 import styled from "@emotion/styled";
 import moment from "moment";
+import { fetchHistoricalData } from "../services/apiService";
 
 const DarkChartContainer = styled(Paper)`
   background-color: #1e1e1e !important;
@@ -44,10 +44,8 @@ const Chart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3001/api/historical"
-        );
-        setData(response.data);
+        const response = await fetchHistoricalData();
+        setData(response);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
