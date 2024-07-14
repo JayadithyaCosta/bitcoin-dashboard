@@ -12,6 +12,7 @@ import {
 import axios from "axios";
 import { Container, Typography, Paper } from "@mui/material";
 import styled from "@emotion/styled";
+import moment from "moment";
 
 const DarkChartContainer = styled(Paper)`
   background-color: #1e1e1e !important;
@@ -32,6 +33,10 @@ const DarkBackground = styled.div`
   padding: 16px;
   min-height: 100vh;
 `;
+
+const formatXAxis = (tickItem) => {
+  return moment(tickItem).format("YYYY-MM-DD HH:mm:ss");
+};
 
 const Chart = () => {
   const [data, setData] = useState([]);
@@ -69,7 +74,11 @@ const Chart = () => {
               }}
             >
               <CartesianGrid strokeDasharray='3 3' stroke='#444' />
-              <XAxis dataKey='time' stroke='#ffffff' />
+              <XAxis
+                dataKey='time'
+                tickFormatter={formatXAxis}
+                stroke='#ffffff'
+              />
               <YAxis yAxisId='left' stroke='#ffffff' />
               <YAxis yAxisId='right' orientation='right' stroke='#ffffff' />
               <Tooltip
