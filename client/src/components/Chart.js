@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,7 +12,10 @@ import {
 import { Container, Typography, Paper } from "@mui/material";
 import styled from "@emotion/styled";
 import moment from "moment";
-import { fetchHistoricalData } from "../services/apiService";
+import { throttle } from "lodash";
+import { fetchHistoricalData, updateData } from "../services/apiService";
+
+const REFRESH_INTERVAL = 300000; // 5 minutes in milliseconds
 
 const DarkChartContainer = styled(Paper)`
   background-color: #1e1e1e !important;
@@ -35,25 +38,44 @@ const DarkBackground = styled.div`
 `;
 
 const formatXAxis = (tickItem) => {
-  return moment(tickItem).format("YYYY-MM-DD HH:mm:ss");
+  return moment(tickItem).format("MM/DD/YY");
 };
+
+const fetchData = throttle(async (setData) => {
+  try {
+    const response = await fetchHistoricalData();
+    setData(response);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}, REFRESH_INTERVAL);
+
+const refreshData = throttle(async (setData) => {
+  await updateData();
+  console.log("Prices Updated!");
+  fetchData(setData);
+}, REFRESH_INTERVAL);
 
 const Chart = () => {
   const [data, setData] = useState([]);
+  const fetchInterval = useRef(null);
+  const refreshInterval = useRef(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchHistoricalData();
-        setData(response);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+    fetchData(setData);
+    fetchInterval.current = setInterval(
+      () => fetchData(setData),
+      REFRESH_INTERVAL
+    );
+    refreshInterval.current = setInterval(
+      () => refreshData(setData),
+      REFRESH_INTERVAL
+    );
 
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(fetchInterval.current);
+      clearInterval(refreshInterval.current);
+    };
   }, []);
 
   return (
