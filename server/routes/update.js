@@ -15,7 +15,10 @@ router.get("/", async (req, res) => {
       eur: data.bpi.EUR.rate_float,
     });
     await price.save();
-    res.send("Data updated");
+    return res.send({
+      status: true,
+      message: "Data Updated",
+    });
   } catch (error) {
     res.status(500).send("Error fetching data");
   }
