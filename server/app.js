@@ -1,40 +1,29 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const axios = require('axios');
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 const app = express();
 const port = 3001;
 
-mongoose.connect('mongodb://localhost:27017/bitcoin', { useNewUrlParser: true, useUnifiedTopology: true });
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/historical', async (req, res) => {
-    try {
-        const prices = await Price.find().sort({ time: 1 });
-        res.json(prices);
-    } catch (error) {
-        res.status(500).send('Error fetching data');
-    }
-});
+// Database connection
+const mongoURI =
+  "mongodb+srv://jam:jPoSsZd3iPSouaeb@cluster0.0jc9gmd.mongodb.net/";
 
-app.get('/api/update', async (req, res) => {
-    try {
-        const response = await axios.get('https://api.coindesk.com/v1/bpi/currentprice.json');
-        const data = response.data;
-        const price = new Price({
-            usd: data.bpi.USD.rate_float,
-            gbp: data.bpi.GBP.rate_float,
-            eur: data.bpi.EUR.rate_float
-        });
-        await price.save();
-        res.send('Data updated');
-    } catch (error) {
-        res.status(500).send('Error fetching data');
-    }
-});
+mongoose
+  .connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Routes
+const historicalRoutes = require("./routes/historical");
+const updateRoutes = require("./routes/update");
+
+app.use("/api/historical", historicalRoutes);
+app.use("/api/update", updateRoutes);
 
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
